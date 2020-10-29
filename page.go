@@ -1,0 +1,1 @@
+package go_cbox_scraper
