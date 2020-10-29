@@ -27,6 +27,9 @@ func main() {
 		log.Println("Scraper failed:", err)
 	}
 
+	// change this value before saving
+	scraper.Debug = true
+
 	err = scraper.Save("test.gob")
 	if err != nil {
 		log.Println("Save failed:", err)
