@@ -3,7 +3,6 @@ package go_cbox_scraper
 import (
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -136,9 +135,7 @@ func (p *CBoxPage) FetchNext() error {
 }
 
 func (p *CBoxPage) request(request *http.Request) (*goquery.Document, error) {
-	if p.Debug {
-		log.Println(request.URL.String())
-	}
+	p.debugPrintln(request.URL.String())
 
 	httpClient := &http.Client{
 		Timeout: 30 * time.Second,

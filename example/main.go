@@ -1,7 +1,7 @@
 package main
 
 import (
-	cboxscraper ".."
+	cboxscraper "github.com/Neo-Desktop/go-cbox-scraper"
 	"log"
 )
 
@@ -12,7 +12,7 @@ func main() {
 		WebHostID: 6,
 		BoxID:     850801,
 		BoxTag:    "hD3VIj",
-		Debug:     true,
+		Debug:     false,
 	}
 
 	scraper := cboxscraper.NewScraper(info, -1, -1)

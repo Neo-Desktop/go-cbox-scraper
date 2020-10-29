@@ -2,7 +2,6 @@ package go_cbox_scraper
 
 import (
 	"encoding/gob"
-	"log"
 	"os"
 	"time"
 )
@@ -26,16 +25,12 @@ func NewScraper(cboxServerInfo CBoxServerInfo, smallestID int, largestID int) *C
 }
 
 func (s *CBoxScraper) sleep() {
-	if s.Debug {
-		log.Println("Sleeping 10 seconds...")
-	}
+	s.debugPrintln("Sleeping 10 seconds...")
 	time.Sleep(10 * time.Second)
 }
 
 func (s *CBoxScraper) Scrape(updatesOnly bool) error {
-	if s.Debug {
-		log.Println("Scraper Started...")
-	}
+	s.debugPrintln("Scraper Started...")
 
 	page := NewCBoxPage(s.CBoxServerInfo)
 
@@ -44,16 +39,12 @@ func (s *CBoxScraper) Scrape(updatesOnly bool) error {
 		return err
 	}
 
-	if s.Debug {
-		log.Printf("Main fetched, scraped %d messages\n", len(page.Messages))
-		log.Printf("\tpage smallestID: %d - scraper smallestID: %d\n", page.SmallestID(), s.SmallestMessageID)
-		log.Printf("\tpage largestID: %d - scraper LargestID: %d\n", page.LargestID(), s.LargestMessageID)
-	}
+	s.debugPrintf("Main fetched, scraped %d messages\n", len(page.Messages))
+	s.debugPrintf("\tpage smallestID: %d - scraper smallestID: %d\n", page.SmallestID(), s.SmallestMessageID)
+	s.debugPrintf("\tpage largestID: %d - scraper LargestID: %d\n", page.LargestID(), s.LargestMessageID)
 
 	if updatesOnly && s.LargestMessageID < page.SmallestID() {
-		if s.Debug {
-			log.Println("Scraper: Case 3 - lots of new messages")
-		}
+		s.debugPrintln("Scraper: Case 3 - lots of new messages")
 		s.sleep()
 		for s.LargestMessageID < page.smallestID {
 			err := page.FetchPrevious()
@@ -64,11 +55,11 @@ func (s *CBoxScraper) Scrape(updatesOnly bool) error {
 		}
 		s.merge(page.Messages)
 	} else if updatesOnly && s.LargestMessageID < page.LargestID() {
-		log.Println("Scraper: Case 2 - Some new Messages")
+		s.debugPrintln("Scraper: Case 2 - Some new Messages")
 		// merge what we retrieved
 		s.merge(page.Messages)
 	} else if !updatesOnly {
-		log.Println("Scraper: Case 4 - fetch all")
+		s.debugPrintln("Scraper: Case 4 - fetch all")
 		s.sleep()
 		for {
 			err := page.FetchPrevious()
@@ -79,12 +70,10 @@ func (s *CBoxScraper) Scrape(updatesOnly bool) error {
 		}
 		s.merge(page.Messages)
 	} else {
-		log.Println("Scraper: Case 0 - no update")
+		s.debugPrintln("Scraper: Case 0 - no update")
 	}
 
-	if s.Debug {
-		log.Printf("Archives fetched, scraped %d messages - page smallestID: %d\n", len(page.Messages), page.SmallestID())
-	}
+	s.debugPrintf("Archives fetched, scraped %d messages - page smallestID: %d\n", len(page.Messages), page.SmallestID())
 
 	return nil
 }
