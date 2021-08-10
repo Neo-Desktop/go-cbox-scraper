@@ -21,7 +21,7 @@ func init() {
 }
 
 type CBoxPage struct {
-	Messages    map[int]*CBoxMessage
+	Messages    map[int]*Message
 	CanPaginate bool
 
 	index         int
@@ -40,12 +40,12 @@ type CBoxPage struct {
 
 	section string
 
-	CBoxServerInfo
+	ServerInfo
 }
 
-func NewCBoxPage(cbxInfo CBoxServerInfo) *CBoxPage {
+func NewCBoxPage(cbxInfo ServerInfo) *CBoxPage {
 	return &CBoxPage{
-		Messages:            make(map[int]*CBoxMessage),
+		Messages:            make(map[int]*Message),
 		CanPaginate:         false,
 		index:               -1,
 		previousIndex:       -1,
@@ -58,7 +58,7 @@ func NewCBoxPage(cbxInfo CBoxServerInfo) *CBoxPage {
 		smallestID:          -1,
 		largestID:           -1,
 		section:             "",
-		CBoxServerInfo:      cbxInfo,
+		ServerInfo:          cbxInfo,
 	}
 }
 
@@ -210,14 +210,14 @@ func (p *CBoxPage) parsePage(document *goquery.Document) {
 	}
 }
 
-func (p *CBoxPage) parseMessage(messageID int, element *goquery.Selection) *CBoxMessage {
-	message := CBoxMessage{
+func (p *CBoxPage) parseMessage(messageID int, element *goquery.Selection) *Message {
+	message := Message{
 		MessageID: messageID,
 	}
 
 	datetimeElement := element.Find("div").Text()
 	if datetimeElement != "" {
-		message.DateTime, _ = time.Parse(CboxDatetimeFormat, datetimeElement)
+		message.DateTime, _ = time.Parse(DatetimeFormat, datetimeElement)
 	}
 	element.Find("div").Remove()
 

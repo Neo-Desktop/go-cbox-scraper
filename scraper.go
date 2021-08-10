@@ -6,33 +6,39 @@ import (
 	"time"
 )
 
-const CboxDatetimeFormat = "2006-01-02 03:04PM"
+const DatetimeFormat = "2006-01-02 03:04PM"
 
-type CBoxScraper struct {
+type Scraper struct {
 	SmallestMessageID int
 	LargestMessageID  int
-	Messages          map[int]*CBoxMessage
-	CBoxServerInfo
+	Messages          map[int]*Message
+	ServerInfo
 }
 
-func NewScraper(cboxServerInfo CBoxServerInfo, smallestID int, largestID int) *CBoxScraper {
-	return &CBoxScraper{
-		SmallestMessageID: smallestID,
-		LargestMessageID:  largestID,
-		CBoxServerInfo:    cboxServerInfo,
-		Messages:          make(map[int]*CBoxMessage),
+func NewScraper() *Scraper {
+	return &Scraper{
+		Messages:          make(map[int]*Message),
 	}
 }
 
-func (s *CBoxScraper) sleep() {
+func NewScraperFromFile(filePath string) (*Scraper, error) {
+	output := NewScraper()
+	err := output.Load(filePath)
+	if err != nil {
+		return nil, err
+	}
+	return output, nil
+}
+
+func (s *Scraper) sleep() {
 	s.debugPrintln("Sleeping 10 seconds...")
 	time.Sleep(10 * time.Second)
 }
 
-func (s *CBoxScraper) Scrape(updatesOnly bool) error {
+func (s *Scraper) Scrape(updatesOnly bool) error {
 	s.debugPrintln("Scraper Started...")
 
-	page := NewCBoxPage(s.CBoxServerInfo)
+	page := NewCBoxPage(s.ServerInfo)
 
 	err := page.FetchMain()
 	if err != nil {
@@ -78,14 +84,14 @@ func (s *CBoxScraper) Scrape(updatesOnly bool) error {
 	return nil
 }
 
-func (s *CBoxScraper) merge(input map[int]*CBoxMessage) {
+func (s *Scraper) merge(input map[int]*Message) {
 	for k,v := range input {
 		s.Messages[k] = v
 	}
 	s.updateIndices()
 }
 
-func (s *CBoxScraper) updateIndices() {
+func (s *Scraper) updateIndices() {
 	s.SmallestMessageID = -1
 	s.LargestMessageID = -1
 	for k, _ := range s.Messages {
@@ -98,7 +104,11 @@ func (s *CBoxScraper) updateIndices() {
 	}
 }
 
-func (s *CBoxScraper) Save(path string) error {
+func (s *Scraper) Configure(config ServerInfo) {
+	s.ServerInfo = config
+}
+
+func (s *Scraper) Save(path string) error {
 	flags := os.O_TRUNC | os.O_RDWR | os.O_EXCL
 	file, err := os.Stat(path)
 	if file == nil {
@@ -122,12 +132,8 @@ func (s *CBoxScraper) Save(path string) error {
 	return nil
 }
 
-func (s *CBoxScraper) Load(path string) error {
-	file, err := os.Stat(path)
-	if file == nil {
-		err = s.Save(path)
-	}
-	if err != nil {
+func (s *Scraper) Load(path string) error {
+	if _, err := os.Stat(os.Args[1]); os.IsNotExist(err) {
 		return err
 	}
 

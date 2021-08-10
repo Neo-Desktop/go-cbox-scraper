@@ -1,20 +1,26 @@
 package main
 
 import (
-	cboxscraper "github.com/Neo-Desktop/go-cbox-scraper"
-
 	"fmt"
 	"log"
+	"os"
 	"sort"
+
+	cbox "github.com/Neo-Desktop/go-cbox-scraper"
 )
 
 func main() {
-	info := cboxscraper.CBoxServerInfo{}
-	scraper := cboxscraper.NewScraper(info, -1, -1)
+	if len(os.Args) != 2 {
+		log.Fatalln("syntax:", os.Args[0], "<filename>")
+	}
 
-	err := scraper.Load("../test.gob")
-	if err != nil {
-		log.Println("Load failed:", err)
+	scraper := cbox.NewScraper()
+	err := scraper.Load(os.Args[1])
+
+	if err != nil && os.IsNotExist(err) {
+		log.Fatalln("error, unable to open file", os.Args[1])
+	} else if err != nil {
+		log.Fatalln("error reading file", err)
 	}
 
 	keys := make([]int, 0, len(scraper.Messages))
