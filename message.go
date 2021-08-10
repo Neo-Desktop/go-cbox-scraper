@@ -13,5 +13,5 @@ type CBoxMessage struct {
 }
 
 func (m *CBoxMessage) String() string {
-	return fmt.Sprintf("%d - %s - %s - %s", m.MessageID, m.DateTime.Format(time.Stamp), m.Username, m.Message)
+	return fmt.Sprintf("#%d [%s] <%s> %s", m.MessageID, m.DateTime.Format(CboxDatetimeFormat), m.Username, m.Message)
 }

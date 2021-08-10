@@ -1,8 +1,9 @@
 package main
 
 import (
-	cboxscraper "github.com/Neo-Desktop/go-cbox-scraper"
 	"log"
+
+	cboxscraper "github.com/Neo-Desktop/go-cbox-scraper"
 )
 
 func main() {
@@ -17,7 +18,7 @@ func main() {
 
 	scraper := cboxscraper.NewScraper(info, -1, -1)
 
-	err := scraper.Load("test.gob")
+	err := scraper.Load("../test.gob")
 	if err != nil {
 		log.Println("Load failed:", err)
 	}
@@ -30,7 +31,7 @@ func main() {
 	// change this value before saving
 	scraper.Debug = true
 
-	err = scraper.Save("test.gob")
+	err = scraper.Save("../test.gob")
 	if err != nil {
 		log.Println("Save failed:", err)
 	}

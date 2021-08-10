@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-const CboxDatetimeFormat = "_2 Jan 06, 03:04 PM"
+const CboxDatetimeFormat = "2006-01-02 03:04PM"
 
 type CBoxScraper struct {
 	SmallestMessageID int
