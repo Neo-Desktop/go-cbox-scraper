@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-const DatetimeFormat = "2006-01-02 03:04PM"
+const DatetimeFormat = "_2 Jan 06, 03:04 PM"
 
 type Scraper struct {
 	SmallestMessageID int

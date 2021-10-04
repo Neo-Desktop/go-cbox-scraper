@@ -3,6 +3,7 @@ package go_cbox_scraper
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -14,10 +15,17 @@ import (
 
 var (
 	digitRegex *regexp.Regexp
+	chicago *time.Location
 )
 
 func init() {
+	var err error
+
 	digitRegex = regexp.MustCompile(`\d+`)
+	chicago, err = time.LoadLocation("America/Chicago")
+	if err != nil {
+		panic("Unable to load timezone offset for America/Chicago from local timezone database")
+	}
 }
 
 type CBoxPage struct {
@@ -40,6 +48,8 @@ type CBoxPage struct {
 
 	section string
 
+	isOld bool
+
 	ServerInfo
 }
 
@@ -58,6 +68,7 @@ func NewCBoxPage(cbxInfo ServerInfo) *CBoxPage {
 		smallestID:          -1,
 		largestID:           -1,
 		section:             "",
+		isOld:               true,
 		ServerInfo:          cbxInfo,
 	}
 }
@@ -173,64 +184,18 @@ func (p *CBoxPage) buildCboxURL(section string) *url.URL {
 }
 
 func (p *CBoxPage) parsePage(document *goquery.Document) {
-	document.Find(".msg").Each(func(index int, element *goquery.Selection) {
-		messageIDString, exists := element.Attr("id")
-		if exists {
-			messageIDInt, _ := strconv.Atoi(digitRegex.FindString(messageIDString))
-			if p.smallestID == -1 || messageIDInt < p.smallestID {
-				p.smallestID = messageIDInt
-			}
-			if p.largestID == -1 || messageIDInt > p.largestID {
-				p.largestID = messageIDInt
-			}
-			p.Messages[messageIDInt] = p.parseMessage(messageIDInt, element)
-		}
-	})
+	tableIndex := document.Find("table").First().Length()
 
-	// can paginate backwards on main page
-	_, p.canPaginatePrevious = document.Find("#lnkArchive").Attr("href")
-	if p.canPaginatePrevious {
-		cboxURL := p.buildCboxURL("archive")
-		q := cboxURL.Query()
-		q.Set("i", strconv.Itoa(p.smallestID))
-		p.previousString = q.Encode()
-	} else {
-		// in an archive page
-		previousString, canPrevious := document.Find("td[align='left'] a").Attr("href")
-		if canPrevious {
-			p.canPaginatePrevious = true
-			p.previousString = previousString[3:]
-		}
-
-		nextString, canNext := document.Find("td[align='right'] a").Attr("href")
-		if canNext {
-			p.canPaginateNext = true
-			p.nextString = nextString[3:]
-		}
-	}
-}
-
-func (p *CBoxPage) parseMessage(messageID int, element *goquery.Selection) *Message {
-	message := Message{
-		MessageID: messageID,
+	// tableIndex returns 0 when not found
+	if tableIndex > 0{
+		log.Println("Parsing old style page")
+		p.parseOldPage(document)
+		return
 	}
 
-	datetimeElement := element.Find("div").Text()
-	if datetimeElement != "" {
-		message.DateTime, _ = time.Parse(DatetimeFormat, datetimeElement)
-	}
-	element.Find("div").Remove()
-
-	name := element.Find("b.nme").Text()
-	if name != "" {
-		message.Username = name
-	}
-	element.Find("b.nme").Remove()
-
-	// trim the first 2 characters, colon and space
-	message.Message = element.Text()[2:]
-
-	return &message
+	p.isOld = false
+	log.Println("Parsing new style page")
+	p.parseNewPage(document)
 }
 
 func newHTTPRequest(url *url.URL) (*http.Request, error) {
