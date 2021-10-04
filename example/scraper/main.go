@@ -18,10 +18,10 @@ func main() {
 	if err != nil && os.IsNotExist(err) {
 		log.Println("Unable to open file, attempting to create...", err)
 		scraper.Configure(cbox.ServerInfo{
-			WebHostID: 7,
-			BoxID:     41422,
-			BoxTag:    "7wcls1",
-			Debug:     false,
+			WebHostID: 6,
+			BoxID:     850801,
+			BoxTag:    "hD3VIj",
+			Debug:     true,
 		})
 		err = scraper.Save(os.Args[1])
 		if err != nil {
